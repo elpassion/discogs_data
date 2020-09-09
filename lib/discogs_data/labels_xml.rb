@@ -16,40 +16,56 @@ module DiscogsData
     def start_element(name)
       @path << name
 
-      case @path
-      when [:labels, :label]                     then @label = Model::Label.new
-      when [:labels, :label, :parentLabel]       then @label.parent_label = Model::LabelReference.new
-      when [:labels, :label, :urls]              then @label.urls = []
-      when [:labels, :label, :images]            then @label.images = []
-      when [:labels, :label, :sublabels]         then @label.sublabels = []
-      when [:labels, :label, :images, :image]    then @label.images << Model::Image.new
-      when [:labels, :label, :sublabels, :label] then @label.sublabels << Model::LabelReference.new
+      depth  = @path.length
+      parent = @path[-2]
+
+      if depth == 2 && name == :label
+        @label = Model::Label.new
+      elsif depth == 3 && parent == :label
+        case name
+        when :parentLabel then @label.parent_label = Model::LabelReference.new
+        when :urls        then @label.urls = []
+        when :images      then @label.images = []
+        when :sublabels   then @label.sublabels = []
+        end
+      elsif depth == 4 && parent == :images && name == :image
+        @label.images << Model::Image.new
+      elsif depth == 4 && parent == :sublabels && name == :label
+        @label.sublabels << Model::LabelReference.new
       end
     end
 
     def end_element(name)
-      case @path
-      when [:labels, :label]                     then handle_label
-      when [:labels, :label, :id]                then @label.id = @text.to_i
-      when [:labels, :label, :name]              then @label.name = @text
-      when [:labels, :label, :profile]           then @label.profile = @text
-      when [:labels, :label, :contactinfo]       then @label.contact_info = @text
-      when [:labels, :label, :data_quality]      then @label.data_quality = @text
-      when [:labels, :label, :urls, :url]        then @label.urls << @text
-      when [:labels, :label, :parentLabel]       then @label.parent_label.name = @text
-      when [:labels, :label, :sublabels, :label] then @label.sublabels.last.name = @text
+      depth  = @path.length
+      parent = @path[-2]
+
+      if depth == 2 && name == :label
+        handle_label
+      elsif depth == 3 && parent == :label
+        case name
+        when :id           then @label.id = @text.to_i
+        when :name         then @label.name = @text
+        when :profile      then @label.profile = @text
+        when :contactinfo  then @label.contact_info = @text
+        when :data_quality then @label.data_quality = @text
+        when :parentLabel  then @label.parent_label.name = @text
+        end
+      elsif depth == 4 && parent == :urls && name == :url
+        @label.urls << @text
+      elsif depth == 4 && parent == :sublabels && name == :label
+        @label.sublabels.last.name = @text
       end
 
       @path.pop
     end
 
     def attr(name, value)
-      case @path
-      when [:labels, :label, :parentLabel]
+      case @path.last
+      when :parentLabel
         @label.parent_label.id = value.to_i
-      when [:labels, :label, :sublabels, :label]
-        @label.sublabels.last.id = value.to_i
-      when [:labels, :label, :images, :image]
+      when :label
+        @label.sublabels.last.id = value.to_i if @depth == 4
+      when :image
         image = @label.images.last
 
         case name
