@@ -18,48 +18,78 @@ module DiscogsData
     def start_element(name)
       @path << name
 
-      case @path
-      when [:artists, :artist]                  then @artist = Model::Artist.new
-      when [:artists, :artist, :namevariations] then @artist.name_variations = []
-      when [:artists, :artist, :aliases]        then @artist.aliases = []
-      when [:artists, :artist, :images]         then @artist.images = []
-      when [:artists, :artist, :urls]           then @artist.urls = []
-      when [:artists, :artist, :members]        then @artist.members = []
-      when [:artists, :artist, :groups]         then @artist.groups = []
-      when [:artists, :artist, :images, :image] then @artist.images << Model::Image.new
-      when [:artists, :artist, :aliases, :name] then @artist.aliases << Model::ArtistReference.new
-      when [:artists, :artist, :members, :name] then @artist.members << Model::ArtistReference.new
-      when [:artists, :artist, :groups, :name]  then @artist.groups << Model::ArtistReference.new
+      depth  = @path.length
+      parent = @path[-2]
+
+      if depth == 2 && name == :artist
+        @artist = Model::Artist.new
+      elsif depth == 3 && parent == :artist
+        case name
+        when :namevariations then @artist.name_variations = []
+        when :aliases        then @artist.aliases = []
+        when :images         then @artist.images = []
+        when :urls           then @artist.urls = []
+        when :members        then @artist.members = []
+        when :groups         then @artist.groups = []
+        end
+      elsif depth == 4
+        if parent == :images && name == :image
+          @artist.images << Model::Image.new
+        elsif parent == :aliases && name == :name
+          @artist.aliases << Model::ArtistReference.new
+        elsif parent == :members && name == :name
+          @artist.members << Model::ArtistReference.new
+        elsif parent == :groups && name == :name
+          @artist.groups << Model::ArtistReference.new
+        end
       end
     end
 
     def end_element(name)
-      case @path
-      when [:artists, :artist]                         then handle_artist
-      when [:artists, :artist, :id]                    then @artist.id = @text.to_i
-      when [:artists, :artist, :name]                  then @artist.name = @text
-      when [:artists, :artist, :realname]              then @artist.real_name = @text
-      when [:artists, :artist, :profile]               then @artist.profile = @text
-      when [:artists, :artist, :data_quality]          then @artist.data_quality = @text
-      when [:artists, :artist, :namevariations, :name] then @artist.name_variations << @text
-      when [:artists, :artist, :urls, :url]            then @artist.urls << @text
-      when [:artists, :artist, :aliases, :name]        then @artist.aliases.last.name = @text
-      when [:artists, :artist, :members, :name]        then @artist.members.last.name = @text
-      when [:artists, :artist, :groups, :name]         then @artist.groups.last.name = @text
+      depth  = @path.length
+      parent = @path[-2]
+
+      if depth == 2 && name == :artist
+        handle_artist
+      elsif depth == 3
+        case name
+        when :id           then @artist.id = @text.to_i
+        when :name         then @artist.name = @text
+        when :realname     then @artist.real_name = @text
+        when :profile      then @artist.profile = @text
+        when :data_quality then @artist.data_quality = @text
+        end
+      elsif depth == 4
+        if parent == :namevariations && name == :name
+          @artist.name_variations << @text
+        elsif parent == :urls && name == :url
+          @artist.urls << @text
+        elsif parent == :aliases && name == :name
+          @artist.aliases.last.name = @text
+        elsif parent == :members && name == :name
+          @artist.members.last.name = @text
+        elsif parent == :groups && name == :name
+          @artist.groups.last.name = @text
+        end
       end
 
       @path.pop
     end
 
     def attr(name, value)
-      case @path
-      when [:artists, :artist, :aliases, :name]
-        @artist.aliases.last.id = value.to_i if name == :id
-      when [:artists, :artist, :groups, :name]
-        @artist.groups.last.id = value.to_i if name == :id
-      when [:artists, :artist, :members, :name]
-        @artist.members.last.id = value.to_i if name == :id
-      when [:artists, :artist, :images, :image]
+      depth  = @path.length
+      parent = @path[-2]
+      node   = @path[-1]
+
+      return unless depth == 4
+
+      if parent == :aliases && node == :name && name == :id
+        @artist.aliases.last.id = value.to_i
+      elsif parent == :groups && node == :name && name == :id
+        @artist.groups.last.id = value.to_i
+      elsif parent == :members && node == :name && name == :id
+        @artist.members.last.id = value.to_i
+      elsif parent == :images && node == :image
         image = @artist.images.last
 
         case name
