@@ -22,7 +22,10 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+handler = ->(artist) { p [artist.id, artist.name] }
+DiscogsData::Artists.new(file_or_url).parse(handler)
+```
 
 ## Development
 
