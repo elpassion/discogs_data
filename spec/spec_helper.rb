@@ -1,4 +1,10 @@
 require "bundler/setup"
+
+require "simplecov"
+SimpleCov.start do
+  enable_coverage :branch
+end
+
 require "discogs_data"
 
 RSpec.configure do |config|
