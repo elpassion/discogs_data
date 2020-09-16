@@ -1,29 +1,23 @@
-# require "discogs_data/reader/file_chunk"
-# require "discogs_data/reader/http_fetch"
-# require "discogs_data/reader/g_zip_decoder"
-# require "discogs_data/reader/io_parser"
+require "piperator"
+require "uri"
 
-require 'piperator'
-require 'uri'
-require 'em-http-request'
-require 'net/http'
-
-require_relative "http_fetch"
-require_relative "g_zip_decoder"
-require_relative "file_chunk"
-require_relative "io_parser"
-require_relative "../artists_xml"
+require "discogs_data/reader/file_chunk"
+require "discogs_data/reader/gzip_decoder"
+require "discogs_data/reader/http_fetch"
+require "discogs_data/reader/io_parser"
 
 module DiscogsData
   module Reader
     class Stream
-      def self.parse(url, parser)
+      def self.parse(url, parser, content_length_proc: nil, progress_proc: nil)
         uri = URI(url)
         local = uri.scheme.nil?
-        gzipped = File.extname(uri.path) == '.gz'
+        gzipped = File.extname(uri.path) == ".gz"
+        fetcher_class = local ? FileChunk : HTTPFetch
+        fetcher = fetcher_class.new(content_length_proc: content_length_proc, progress_proc: progress_proc)
 
         Piperator.build do
-          pipe(local ? FileChunk.new : HTTPFetch.new)
+          pipe(fetcher)
           pipe(GZipDecoder.new) if gzipped
           pipe(IOParser.new(parser))
         end.call(url)

@@ -1,5 +1,5 @@
-require 'piperator'
-require 'ox'
+require "piperator"
+require "ox"
 
 module DiscogsData
   module Reader
