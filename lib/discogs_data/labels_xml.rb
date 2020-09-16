@@ -6,11 +6,11 @@ require "discogs_data/model/image"
 
 module DiscogsData
   class LabelsXML < ::Ox::Sax
-    def initialize(handler, limit: nil)
-      @handler = handler
-      @limit   = limit
-      @count   = 0
-      @path    = []
+    def initialize(entity_callback, limit: nil)
+      @entity_callback = entity_callback
+      @limit           = limit
+      @count           = 0
+      @path            = []
     end
 
     def start_element(name)
@@ -89,7 +89,7 @@ module DiscogsData
 
       raise ReadLimitReached if @limit && @count > @limit
 
-      @handler.call(@label)
+      @entity_callback.call(@label)
     end
   end
 end

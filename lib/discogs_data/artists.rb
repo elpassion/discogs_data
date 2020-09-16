@@ -7,10 +7,10 @@ module DiscogsData
       @uri = uri
     end
 
-    def parse(handler, limit = nil, content_length_proc: nil, progress_proc: nil)
-      parser = ArtistsXML.new(handler, limit: limit)
+    def parse(entity_callback, limit = nil, file_size_proc: nil, file_progress_proc: nil)
+      xml_handler = ArtistsXML.new(entity_callback, limit: limit)
 
-      Reader::Stream.parse(@uri, parser, content_length_proc: content_length_proc, progress_proc: progress_proc)
+      Reader::Stream.parse(@uri, xml_handler, file_size_proc: file_size_proc, file_progress_proc: file_progress_proc)
     end
   end
 end

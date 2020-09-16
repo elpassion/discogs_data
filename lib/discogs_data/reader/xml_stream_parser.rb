@@ -3,16 +3,16 @@ require "ox"
 
 module DiscogsData
   module Reader
-    class IOParser
-      def initialize(handler)
-        @handler = handler
+    class XMLStreamParser
+      def initialize(xml_handler)
+        @xml_handler = xml_handler
       end
 
       def call(enumerable)
         io = Piperator::IO.new(enumerable.each)
 
         begin
-          Ox.sax_parse(@handler, io)
+          Ox.sax_parse(@xml_handler, io)
         rescue ReadLimitReached
         end
       end

@@ -4,9 +4,9 @@ require "uri"
 module DiscogsData
   module Reader
     class HTTPFetch
-      def initialize(content_length_proc: nil, progress_proc: nil)
-        @content_length_proc = content_length_proc
-        @progress_proc       = progress_proc
+      def initialize(file_size_proc: nil, file_progress_proc: nil)
+        @file_size_proc     = file_size_proc
+        @file_progress_proc = file_progress_proc
       end
 
       def call(url)
@@ -15,15 +15,15 @@ module DiscogsData
         Enumerator.new do |yielder|
           Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
             http.request_get(uri.request_uri) do |response|
-              content_length = response['content-length'].to_i
-              progress       = 0
+              file_size     = response["content-length"].to_i
+              file_progress = 0
 
-              @content_length_proc&.call(content_length)
+              @file_size_proc&.call(file_size)
 
               response.read_body do |chunk|
-                progress += chunk.bytesize
+                file_progress += chunk.bytesize
 
-                @progress_proc&.call(progress, content_length)
+                @file_progress_proc&.call(chunk.bytesize, file_progress, file_size)
 
                 yielder << chunk
               end

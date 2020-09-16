@@ -1,23 +1,23 @@
 module DiscogsData
   module Reader
     class FileChunk
-      def initialize(content_length_proc: nil, progress_proc: nil, chunk_size: 1024)
-        @content_length_proc = content_length_proc
-        @progress_proc       = progress_proc
-        @chunk_size          = chunk_size
+      def initialize(file_size_proc: nil, file_progress_proc: nil, chunk_size: 1024)
+        @file_size_proc     = file_size_proc
+        @file_progress_proc = file_progress_proc
+        @chunk_size         = chunk_size
       end
 
       def call(path)
         Enumerator.new do |yielder|
-          content_length = File.size(path)
-          progress       = 0
+          file_size     = File.size(path)
+          file_progress = 0
 
-          @content_length_proc&.call(content_length)
+          @file_size_proc&.call(file_size)
 
           File.open(path).each(nil, @chunk_size) do |chunk|
-            progress += chunk.bytesize
+            file_progress += chunk.bytesize
 
-            @progress_proc&.call(progress, content_length)
+            @file_progress_proc&.call(chunk.bytesize, file_progress, file_size)
 
             yielder << chunk
           end

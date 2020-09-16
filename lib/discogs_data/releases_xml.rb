@@ -12,13 +12,13 @@ require "discogs_data/model/video"
 
 module DiscogsData
   class ReleasesXML < ::Ox::Sax
-    def initialize(handler, limit: nil)
+    def initialize(entity_callback, limit: nil)
       raise ArgumentError unless valid_limit?(limit)
 
-      @handler = handler
-      @limit   = limit
-      @count   = 0
-      @path    = []
+      @entity_callback = entity_callback
+      @limit           = limit
+      @count           = 0
+      @path            = []
     end
 
     def start_element(name)
@@ -79,9 +79,9 @@ module DiscogsData
     end
 
     def end_element(name)
-      parent = @path[-2]
+      parent      = @path[-2]
       grandparent = @path[-3]
-      depth = @path.length
+      depth       = @path.length
 
       if (depth == 4 || depth == 6 || depth == 8) && name == :artist
         @artists << @artist
@@ -233,7 +233,7 @@ module DiscogsData
 
       raise ReadLimitReached if @limit && @count > @limit
 
-      @handler.call(@release)
+      @entity_callback.call(@release)
     end
 
     def valid_limit?(limit)

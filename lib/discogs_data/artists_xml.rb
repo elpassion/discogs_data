@@ -6,13 +6,13 @@ require "discogs_data/model/image"
 
 module DiscogsData
   class ArtistsXML < ::Ox::Sax
-    def initialize(handler, limit: nil)
+    def initialize(entity_callback, limit: nil)
       raise ArgumentError unless valid_limit?(limit)
 
-      @handler = handler
-      @limit   = limit
-      @count   = 0
-      @path    = []
+      @entity_callback = entity_callback
+      @limit           = limit
+      @count           = 0
+      @path            = []
     end
 
     def start_element(name)
@@ -113,7 +113,7 @@ module DiscogsData
 
       raise ReadLimitReached if @limit && @count > @limit
 
-      @handler.call(@artist)
+      @entity_callback.call(@artist)
     end
 
     def valid_limit?(limit)
