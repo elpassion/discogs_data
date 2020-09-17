@@ -1,14 +1,11 @@
 require "net/http"
 require "uri"
 
+require "discogs_data/reader/file_chunk"
+
 module DiscogsData
   module Reader
-    class HTTPFetch
-      def initialize(file_size_proc: nil, file_progress_proc: nil)
-        @file_size_proc     = file_size_proc
-        @file_progress_proc = file_progress_proc
-      end
-
+    class RemoteFileChunk < FileChunk
       def call(url)
         uri = URI(url)
 
@@ -18,12 +15,12 @@ module DiscogsData
               file_size     = response["content-length"].to_i
               file_progress = 0
 
-              @file_size_proc&.call(file_size)
+              on_file_size&.call(file_size)
 
               response.read_body do |chunk|
                 file_progress += chunk.bytesize
 
-                @file_progress_proc&.call(chunk.bytesize, file_progress, file_size)
+                on_file_progress&.call(chunk.bytesize, file_progress, file_size)
 
                 yielder << chunk
               end
