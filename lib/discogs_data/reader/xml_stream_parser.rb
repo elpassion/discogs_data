@@ -12,7 +12,8 @@ module DiscogsData
         io = Piperator::IO.new(enumerable.each)
 
         begin
-          Ox.sax_parse(@xml_handler, io)
+          Ox.default_options = {encoding: "UTF-8"}
+          Ox.sax_parse(@xml_handler, io, convert_special: true)
         rescue ReadLimitReached
         end
       end
