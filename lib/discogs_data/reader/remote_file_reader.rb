@@ -1,17 +1,19 @@
 require "net/http"
 require "uri"
 
-require "discogs_data/reader/file_chunk"
+require "discogs_data/reader/file_reader"
 
 module DiscogsData
   module Reader
-    class RemoteFileChunk < FileChunk
+    class RemoteFileReader < FileReader
       def call(url)
         uri = URI(url)
 
         Enumerator.new do |yielder|
-          Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
-            http.request_get(uri.request_uri) do |response|
+          begin
+            @http = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https")
+
+            @http.request_get(uri.request_uri) do |response|
               file_size     = response["content-length"].to_i
               file_progress = 0
 
@@ -25,8 +27,14 @@ module DiscogsData
                 yielder << chunk
               end
             end
+          ensure
+            close_io
           end
         end
+      end
+
+      def close_io
+        @http.finish if @http&.active?
       end
     end
   end
