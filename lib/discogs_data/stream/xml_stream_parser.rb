@@ -2,7 +2,7 @@ require "piperator"
 require "ox"
 
 module DiscogsData
-  module Reader
+  module Stream
     class XMLStreamParser
       def initialize(xml_handler)
         @xml_handler = xml_handler

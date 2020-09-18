@@ -1,10 +1,10 @@
 require "net/http"
 require "uri"
 
-require "discogs_data/reader/file_reader"
+require "discogs_data/stream/file_reader"
 
 module DiscogsData
-  module Reader
+  module Stream
     class RemoteFileReader < FileReader
       def call(url)
         uri = URI(url)

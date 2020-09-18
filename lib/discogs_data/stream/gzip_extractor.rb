@@ -1,8 +1,8 @@
 require "em-http-request"
 
 module DiscogsData
-  module Reader
-    class GZipDecoder
+  module Stream
+    class GZipExtractor
       def call(enumerable)
         Enumerator.new do |yielder|
           decoder = EventMachine::HttpDecoders::GZip.new { |chunk| yielder << chunk }

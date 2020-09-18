@@ -1,5 +1,5 @@
 module DiscogsData
-  module Reader
+  module Stream
     class FileReader
       def initialize(on_file_size: nil, on_file_progress: nil)
         @on_file_size     = on_file_size
