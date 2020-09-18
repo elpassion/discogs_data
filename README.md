@@ -22,10 +22,56 @@ Or install it yourself as:
 
 ## Usage
 
+Initialize the `DiscogsData::Dump` class with a path to a remote or local file. The parser supports both gzipped and raw XML files:
+
 ```ruby
-handler = ->(artist) { p [artist.id, artist.name] }
-DiscogsData::Artists.new(file_or_url).parse(handler)
+remote_gzipped_dump = DiscogsData::Dump.new("https://discogs-data.s3-us-west-2.amazonaws.com/data/2020/discogs_20200901_labels.xml.gz")
+remote_raw_dump     = DiscogsData::Dump.new("https://myserver.example.com/discogs_20200901_labels.xml")
+local_gzipped_dump  = DiscogsData::Dump.new("./discogs_20200901_labels.xml.gz")
+local_raw_dump      = DiscogsData::Dump.new("./discogs_20200901_labels.xml")
 ```
+
+You can process the dump file with a handler. The handler can be a lambda, a proc or a class with a `call` method:
+
+```ruby
+# Define the dump file:
+labels_dump = DiscogsData::Dump.new("https://discogs-data.s3-us-west-2.amazonaws.com/data/2020/discogs_20200901_labels.xml.gz") 
+
+# Inline lambda handler:
+labels_dump.parse(->(label) { puts label.name })
+
+# Proc handler passed as variable: 
+handler = proc { |label| puts label.name }
+labels_dump.parse(handler)
+
+# Handler class:
+class LabelHandler
+  def call(label)
+    puts label.name
+  end
+end
+
+labels_dump.parse(LabelHandler.new)
+```
+
+You can limit the number of parsed entities by providing `limit` argument:
+
+```ruby
+DiscogsData::Dump.new("discogs_20200806_artists.xml.gz").parse(handler, limit: 10)
+```
+
+The parser automatically detects the type of entities inside the dump file:
+
+```ruby
+artists = []
+handler = ->(artist) { artists << artist }
+
+DiscogsData::Dump.new("discogs_20200806_artists.xml.gz").parse(handler)
+
+artists.first.class # => DiscogsData::Model::Artist
+```
+
+The detection is based on the first XML element in the dump file (`<artists>`, `<labels>`, `<releases>`). If the parser does not recognise the entity type, it will raise `UnknownDumpFormat` exception. 
 
 ## Development
 
