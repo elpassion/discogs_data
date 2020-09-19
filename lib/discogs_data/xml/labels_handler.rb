@@ -58,7 +58,7 @@ module DiscogsData
         when :parentLabel
           @label.parent_label.id = value.to_i
         when :label
-          @label.sublabels.last.id = value.to_i if @depth == 4
+          @label.sublabels.last.id = value.to_i if @path.size == 4
         when :image
           image = @label.images.last
 
