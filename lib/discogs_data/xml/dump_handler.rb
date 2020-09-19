@@ -24,9 +24,9 @@ module DiscogsData
       def start_element(name)
         raise UnknownDumpFormat unless HANDLER_IMPLEMENTATIONS.has_key?(name)
 
-        @path << name
-
         extend(HANDLER_IMPLEMENTATIONS[name])
+
+        start_element(name)
       end
 
       def end_element(name)

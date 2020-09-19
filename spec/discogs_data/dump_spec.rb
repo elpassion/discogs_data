@@ -25,7 +25,7 @@ RSpec.describe DiscogsData::Dump do
     expect(array_handler.entities.first).to be_a(DiscogsData::Model::Release)
   end
 
-  it "limits the number of parsed entities" do
+  it "allows to limit the number of entities to read" do
     described_class.new(artists_file).parse(array_handler, limit: 10)
 
     expect(array_handler.entities.length).to eq(10)
