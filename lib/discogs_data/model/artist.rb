@@ -1,6 +1,6 @@
 module DiscogsData
   module Model
-    class Artist < Struct.new(:id, :name, :real_name, :profile, :data_quality, :name_variations, :aliases, :images, :urls, :members, :groups)
+    Artist = Struct.new(:id, :name, :real_name, :profile, :data_quality, :name_variations, :aliases, :images, :urls, :members, :groups) do
       def primary_image
         images&.detect { |image| image.type == "primary" }
       end

@@ -1,6 +1,6 @@
 module DiscogsData
   module Model
-    class Label < Struct.new(:id, :name, :contact_info, :profile, :data_quality, :urls, :images, :sublabels, :parent_label)
+    Label = Struct.new(:id, :name, :contact_info, :profile, :data_quality, :urls, :images, :sublabels, :parent_label) do
       def primary_image
         images&.detect { |image| image.type == "primary" }
       end

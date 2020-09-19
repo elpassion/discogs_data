@@ -1,6 +1,5 @@
 module DiscogsData
   module Model
-    class LabelReference < Struct.new(:id, :name)
-    end
+    LabelReference = Struct.new(:id, :name)
   end
 end

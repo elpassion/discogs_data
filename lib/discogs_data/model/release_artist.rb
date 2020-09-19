@@ -1,6 +1,6 @@
 module DiscogsData
   module Model
-    class ReleaseArtist < Struct.new(:artist_reference, :anv, :join, :role, :tracks)
+    ReleaseArtist = Struct.new(:artist_reference, :anv, :join, :role, :tracks) do
       def artist_id
         artist_reference&.id
       end

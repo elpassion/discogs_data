@@ -1,6 +1,6 @@
 module DiscogsData
   module Model
-    class ReleaseLabel < Struct.new(:label_reference, :catalog_number)
+    ReleaseLabel = Struct.new(:label_reference, :catalog_number) do
       def label_id
         label_reference&.id
       end
