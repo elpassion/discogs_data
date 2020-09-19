@@ -1,7 +1,7 @@
 # Discogs Data
 
-[![Ruby Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://github.com/testdouble/standard)
-
+[![Ruby Style Guide](https://img.shields.io/badge/code_style-rubocop-brightgreen.svg)](https://github.com/rubocop-hq/rubocop)
+    
 A set of tools for extracting, processing and importing Discogs monthly XML Data Dumps (https://data.discogs.com).
 
 ## Installation
