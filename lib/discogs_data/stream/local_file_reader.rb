@@ -3,7 +3,9 @@ require "discogs_data/stream/file_reader"
 module DiscogsData
   module Stream
     class LocalFileReader < FileReader
-      def initialize(chunk_size: 1024, **args)
+      DEFAULT_FILE_BUFFER = 4096 # 4 KB
+
+      def initialize(chunk_size: DEFAULT_FILE_BUFFER, **args)
         super(**args)
 
         @chunk_size = chunk_size
@@ -19,9 +21,9 @@ module DiscogsData
           on_file_size&.call(file_size)
 
           begin
-            @file = File.new(path)
+            @file = File.open(path, "r")
 
-            @file.each(nil, @chunk_size) do |chunk|
+            while chunk = @file.read(@chunk_size)
               file_progress += chunk.bytesize
 
               on_file_progress&.call(chunk.bytesize, file_progress, file_size)
