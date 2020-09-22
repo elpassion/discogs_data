@@ -1,8 +1,7 @@
 require "ox"
-
-require "discogs_data/model/label"
-require "discogs_data/model/label_reference"
-require "discogs_data/model/image"
+require_relative "../model/image"
+require_relative "../model/label"
+require_relative "../model/label_reference"
 
 module DiscogsData
   module XML

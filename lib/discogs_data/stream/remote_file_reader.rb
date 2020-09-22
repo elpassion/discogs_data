@@ -1,7 +1,6 @@
 require "net/http"
 require "uri"
-
-require "discogs_data/stream/file_reader"
+require_relative "file_reader"
 
 module DiscogsData
   module Stream

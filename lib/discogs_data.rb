@@ -1,5 +1,5 @@
-require "discogs_data/version"
-require "discogs_data/dump"
+require_relative "discogs_data/version"
+require_relative "discogs_data/dump"
 
 module DiscogsData
   class Error < StandardError; end

@@ -1,5 +1,5 @@
-require "piperator"
 require "ox"
+require "piperator"
 
 module DiscogsData
   module Stream

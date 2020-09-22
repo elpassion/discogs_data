@@ -1,11 +1,10 @@
 require "piperator"
 require "uri"
-
-require "discogs_data/stream/local_file_reader"
-require "discogs_data/stream/gzip_extractor"
-require "discogs_data/stream/remote_file_reader"
-require "discogs_data/stream/xml_stream_parser"
-require "discogs_data/xml/dump_handler"
+require_relative "stream/gzip_extractor"
+require_relative "stream/local_file_reader"
+require_relative "stream/remote_file_reader"
+require_relative "stream/xml_stream_parser"
+require_relative "xml/dump_handler"
 
 module DiscogsData
   class Dump

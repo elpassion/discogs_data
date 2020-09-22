@@ -1,12 +1,12 @@
-require "discogs_data/model/image"
-require "discogs_data/model/release"
-require "discogs_data/model/release_artist"
-require "discogs_data/model/release_company"
-require "discogs_data/model/release_format"
-require "discogs_data/model/release_identifier"
-require "discogs_data/model/release_label"
-require "discogs_data/model/release_track"
-require "discogs_data/model/video"
+require_relative "../model/image"
+require_relative "../model/release"
+require_relative "../model/release_artist"
+require_relative "../model/release_company"
+require_relative "../model/release_format"
+require_relative "../model/release_identifier"
+require_relative "../model/release_label"
+require_relative "../model/release_track"
+require_relative "../model/video"
 
 module DiscogsData
   module XML

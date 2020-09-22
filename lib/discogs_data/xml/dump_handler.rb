@@ -1,9 +1,8 @@
 require "forwardable"
 require "ox"
-
-require "discogs_data/xml/labels_handler"
-require "discogs_data/xml/artists_handler"
-require "discogs_data/xml/releases_handler"
+require_relative "artists_handler"
+require_relative "labels_handler"
+require_relative "releases_handler"
 
 module DiscogsData
   module XML

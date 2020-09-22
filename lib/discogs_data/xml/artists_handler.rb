@@ -1,8 +1,7 @@
 require "ox"
-
-require "discogs_data/model/artist"
-require "discogs_data/model/artist_reference"
-require "discogs_data/model/image"
+require_relative "../model/artist"
+require_relative "../model/artist_reference"
+require_relative "../model/image"
 
 module DiscogsData
   module XML
