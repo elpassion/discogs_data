@@ -13,17 +13,20 @@ module DiscogsData
           releases: ReleasesHandler
       }
 
-      def initialize(entity_callback, limit: nil)
-        @entity_callback = entity_callback
-        @limit           = limit
-        @count           = 0
-        @path            = []
+      def initialize(entity_callback, limit: nil, on_dump_type: nil)
+        @entity_callback    = entity_callback
+        @dump_type_callback = on_dump_type
+        @limit              = limit
+        @count              = 0
+        @path               = []
       end
 
       def start_element(name)
-        raise UnknownDumpFormat unless HANDLER_IMPLEMENTATIONS.has_key?(name)
+        raise UnknownDumpFormat unless handler_implementation = HANDLER_IMPLEMENTATIONS[name]
 
-        extend(HANDLER_IMPLEMENTATIONS[name])
+        extend(handler_implementation)
+
+        @dump_type_callback&.call(name)
 
         start_element(name)
       end
@@ -45,7 +48,7 @@ module DiscogsData
 
         raise ReadLimitReached if @limit && @count > @limit
 
-        @entity_callback.call(entity)
+        @entity_callback&.call(entity)
       end
     end
   end

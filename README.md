@@ -22,56 +22,80 @@ Or install it yourself as:
 
 ## Usage
 
+### Specify the file
+
 Initialize the `DiscogsData::Dump` class with a path to a remote or local file. The parser supports both gzipped and raw XML files:
 
 ```ruby
-remote_gzipped_dump = DiscogsData::Dump.new("https://discogs-data.s3-us-west-2.amazonaws.com/data/2020/discogs_20200901_labels.xml.gz")
-remote_raw_dump     = DiscogsData::Dump.new("https://myserver.example.com/discogs_20200901_labels.xml")
-local_gzipped_dump  = DiscogsData::Dump.new("./discogs_20200901_labels.xml.gz")
-local_raw_dump      = DiscogsData::Dump.new("./discogs_20200901_labels.xml")
+remote_gzip = DiscogsData::Dump.new("https://discogs-data.s3-us-west-2.amazonaws.com/data/2020/discogs_20200901_labels.xml.gz")
+remote_raw  = DiscogsData::Dump.new("https://myserver.example.com/discogs_20200901_labels.xml")
+local_gzip  = DiscogsData::Dump.new("discogs_20200901_labels.xml.gz")
+local_raw   = DiscogsData::Dump.new("discogs_20200901_labels.xml")
 ```
 
-You can process the dump file with a handler. The handler can be a lambda, a proc or a class with a `call` method:
+### Process the data
+
+You can process the dump file with a block:
 
 ```ruby
-# Define the dump file:
 labels_dump = DiscogsData::Dump.new("https://discogs-data.s3-us-west-2.amazonaws.com/data/2020/discogs_20200901_labels.xml.gz") 
+labels_dump.each { |label| puts label.name }
+```
 
-# Inline lambda handler:
-labels_dump.parse(->(label) { puts label.name })
+You can also process the dump file with a handler. The handler can be a lambda, a proc or an object with a `call` method:
 
-# Proc handler passed as variable: 
-handler = proc { |label| puts label.name }
-labels_dump.parse(handler)
+```ruby
+class ArrayHandler
+  attr_reader :entities
 
-# Handler class:
-class LabelHandler
-  def call(label)
-    puts label.name
+  def initialize
+    @entities = []
+  end
+
+  def call(entity)
+    @entities << entity
   end
 end
 
-labels_dump.parse(LabelHandler.new)
+@handler = ArrayHandler.new
+
+DiscogsData::Dump.new("discogs_20200806_artists.xml.gz").each(@handler)
+
+puts @handler.entities.count
 ```
 
 You can limit the number of parsed entities by providing `limit` argument:
 
 ```ruby
-DiscogsData::Dump.new("discogs_20200806_artists.xml.gz").parse(handler, limit: 10)
+DiscogsData::Dump.new("discogs_20200806_artists.xml.gz").each(limit: 10) { |artist| puts artist.name }
 ```
 
 The parser automatically detects the type of entities inside the dump file:
 
 ```ruby
-artists = []
-handler = ->(artist) { artists << artist }
-
-DiscogsData::Dump.new("discogs_20200806_artists.xml.gz").parse(handler)
-
-artists.first.class # => DiscogsData::Model::Artist
+DiscogsData::Dump.new("discogs_20200806_artists.xml.gz").each(limit: 1) { |artist| puts artist.class } # => DiscogsData::Model::Artist
 ```
 
 The detection is based on the first XML element in the dump file (`<artists>`, `<labels>`, `<releases>`). If the parser does not recognise the entity type, it will raise `UnknownDumpFormat` exception. 
+
+### Register callbacks
+
+You can register callbacks to receive notification when certain events occur. This allows you to eg. check the progress of the parsing process:
+
+```ruby
+require "ruby-progressbar"
+
+@progress_bar = ProgressBar.create
+@count        = 0
+
+DiscogsData::Dump.new("https://discogs-data.s3-us-west-2.amazonaws.com/data/2020/discogs_20200901_labels.xml.gz").
+  on(:file_size)     { |file_size|  @progress_bar.total = file_size }.
+  on(:file_progress) { |chunk_size| @progress_bar.progress += chunk_size }.
+  on(:dump_type)     { |dump_type|  @progress_bar.title = dump_type.to_s.capitalize }.
+  each               { |label|      @count += 1 }
+
+@progress_bar.log("Parsed #{@count} labels")
+```
 
 ## Development
 
@@ -81,7 +105,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/discogs_data. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/discogs_data/blob/master/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/elpassion/discogs_data. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/discogs_data/blob/master/CODE_OF_CONDUCT.md).
 
 
 ## License

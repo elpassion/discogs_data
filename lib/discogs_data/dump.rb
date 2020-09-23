@@ -12,14 +12,16 @@ module DiscogsData
       @path_or_url = path_or_url
     end
 
-    def parse(on_entity, on_file_size: nil, on_file_progress: nil, limit: nil)
+    def each(callback = nil, limit: nil, &block)
+      raise ArgumentError, "cannot define both callback and block" if callback && block
+
       uri          = URI(@path_or_url)
       local        = uri.scheme.nil?
       gzipped      = File.extname(uri.path) == ".gz"
       reader_class = local ? Stream::LocalFileReader : Stream::RemoteFileReader
 
-      handler   = XML::DumpHandler.new(on_entity, limit: limit)
-      reader    = reader_class.new(on_file_size: on_file_size, on_file_progress: on_file_progress)
+      handler   = XML::DumpHandler.new(callback || block, limit: limit, on_dump_type: callbacks[:dump_type])
+      reader    = reader_class.new(on_file_size: callbacks[:file_size], on_file_progress: callbacks[:file_progress])
       extractor = gzipped && Stream::GZipExtractor.new
       parser    = Stream::XMLStreamParser.new(handler)
 
@@ -33,6 +35,19 @@ module DiscogsData
       ensure
         reader&.close_io
       end
+    end
+    alias_method :parse, :each
+
+    def on(event, &block)
+      callbacks[event] = block
+
+      self
+    end
+
+    private
+
+    def callbacks
+      @callbacks ||= {}
     end
   end
 end
