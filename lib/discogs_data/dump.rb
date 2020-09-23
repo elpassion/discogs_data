@@ -15,12 +15,14 @@ module DiscogsData
     def each(callback = nil, limit: nil, &block)
       raise ArgumentError, "cannot define both callback and block" if callback && block
 
+      callback ||= block
+
       uri          = URI(@path_or_url)
       local        = uri.scheme.nil?
       gzipped      = File.extname(uri.path) == ".gz"
       reader_class = local ? Stream::LocalFileReader : Stream::RemoteFileReader
 
-      handler   = XML::DumpHandler.new(callback || block, limit: limit, on_dump_type: callbacks[:dump_type])
+      handler   = XML::DumpHandler.new(callback, limit: limit, on_dump_type: callbacks[:dump_type])
       reader    = reader_class.new(on_file_size: callbacks[:file_size], on_file_progress: callbacks[:file_progress])
       extractor = gzipped && Stream::GZipExtractor.new
       parser    = Stream::XMLStreamParser.new(handler)
@@ -37,6 +39,30 @@ module DiscogsData
       end
     end
     alias_method :parse, :each
+
+    def each_slice(callback = nil, batch_limit: 1000, limit: nil, &block)
+      raise ArgumentError, "cannot define both callback and block" if callback && block
+
+      callback ||= block
+
+      loop do
+        batch = []
+
+        each(limit: limit) do |entity|
+          batch << entity
+
+          if batch.size == batch_limit
+            callback.call(batch)
+
+            batch = []
+          end
+        end
+
+        callback.call(batch)
+
+        raise StopIteration
+      end
+    end
 
     def on(event, &block)
       callbacks[event] = block

@@ -64,11 +64,23 @@ DiscogsData::Dump.new("discogs_20200806_artists.xml.gz").each(@handler)
 puts @handler.entities.count
 ```
 
+### Limit the number of entities to read
+
 You can limit the number of parsed entities by providing `limit` argument:
 
 ```ruby
 DiscogsData::Dump.new("discogs_20200806_artists.xml.gz").each(limit: 10) { |artist| puts artist.name }
 ```
+
+### Process the entities in batches
+
+You can process the entities in batches with `each_slice` method. You can limit the batch size to a certain amount with `batch_limit` parameter (default value is 1000).
+
+```ruby
+DiscogsData::Dump.new("discogs_20200806_artists.xml.gz").each_slice(batch_limit: 10) { |batch| puts batch.map(&:name).join(', ') }
+```
+
+### Auto-detection of dump kind
 
 The parser automatically detects the type of entities inside the dump file:
 

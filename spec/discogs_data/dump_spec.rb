@@ -26,6 +26,22 @@ RSpec.describe DiscogsData::Dump do
     expect(array_handler.entities.length).to eq(10)
   end
 
+  it "allows to process the entities in batches" do
+    described_class.new(releases_file).each_slice(array_handler, batch_limit: 7)
+
+    expect(array_handler.entities.length).to eq(8)
+    expect(array_handler.entities.map(&:size)).to eq([7, 7, 7, 7, 7, 7, 7, 1])
+    expect(array_handler.entities.first.first).to be_a(DiscogsData::Model::Release)
+  end
+
+  it "allows to process the entities in batches with limit" do
+    described_class.new(releases_file).each_slice(array_handler, batch_limit: 7, limit: 20)
+
+    expect(array_handler.entities.length).to eq(3)
+    expect(array_handler.entities.map(&:size)).to eq([7, 7, 6])
+    expect(array_handler.entities.first.first).to be_a(DiscogsData::Model::Release)
+  end
+
   it "automatically detects Artists dump file" do
     described_class.new(artists_file).each(array_handler)
 
