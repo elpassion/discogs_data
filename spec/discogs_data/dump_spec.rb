@@ -1,8 +1,9 @@
 RSpec.describe DiscogsData::Dump do
   let(:array_handler) { ArrayHandler.new }
-  let(:artists_file) { "spec/files/artists_sample.xml.gz" }
-  let(:labels_file) { "spec/files/labels_sample.xml.gz" }
+  let(:artists_file)  { "spec/files/artists_sample.xml.gz" }
+  let(:labels_file)   { "spec/files/labels_sample.xml.gz" }
   let(:releases_file) { "spec/files/releases_sample.xml.gz" }
+  let(:masters_file)  { "spec/files/masters_sample.xml.gz" }
 
   it "passes parsed entities to the block" do
     releases = []
@@ -58,6 +59,12 @@ RSpec.describe DiscogsData::Dump do
     described_class.new(releases_file).each(array_handler)
 
     expect(array_handler.entities.first).to be_a(DiscogsData::Model::Release)
+  end
+
+  it "automatically detects Masters dump file" do
+    described_class.new(masters_file).each(array_handler)
+
+    expect(array_handler.entities.first).to be_a(DiscogsData::Model::Master)
   end
 
   private

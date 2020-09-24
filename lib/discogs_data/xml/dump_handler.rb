@@ -2,6 +2,7 @@ require "forwardable"
 require "ox"
 require_relative "artists_handler"
 require_relative "labels_handler"
+require_relative "masters_handler"
 require_relative "releases_handler"
 
 module DiscogsData
@@ -10,6 +11,7 @@ module DiscogsData
       HANDLER_IMPLEMENTATIONS = {
           labels:   LabelsHandler,
           artists:  ArtistsHandler,
+          masters:  MastersHandler,
           releases: ReleasesHandler
       }
 
