@@ -22,24 +22,30 @@ Or install it yourself as:
 
 ## Usage
 
-### Specify the file
+### Specify the location of the dump file
 
-Initialize the `DiscogsData::Dump` class with a path to a remote or local file. The parser supports both gzipped and raw XML files:
+Initialize the `DiscogsData::Dump` class with a remote URL or a local file path. The parser supports both gzipped and raw (unpacked) XML files:
 
 ```ruby
-remote_gzip = DiscogsData::Dump.new("https://discogs-data.s3-us-west-2.amazonaws.com/data/2020/discogs_20200901_labels.xml.gz")
-remote_raw  = DiscogsData::Dump.new("https://myserver.example.com/discogs_20200901_labels.xml")
-local_gzip  = DiscogsData::Dump.new("discogs_20200901_labels.xml.gz")
-local_raw   = DiscogsData::Dump.new("discogs_20200901_labels.xml")
+# Remote URLs
+ARTISTS_URL  = "https://discogs-data.s3-us-west-2.amazonaws.com/data/2020/discogs_20200901_artists.xml.gz"
+LABELS_URL   = "https://discogs-data.s3-us-west-2.amazonaws.com/data/2020/discogs_20200901_labels.xml.gz"
+MASTERS_URL  = "https://discogs-data.s3-us-west-2.amazonaws.com/data/2020/discogs_20200901_masters.xml.gz"
+RELEASES_URL = "https://discogs-data.s3-us-west-2.amazonaws.com/data/2020/discogs_20200901_releases.xml.gz"
+
+# Local file paths
+ARTISTS_FILE  = "./discogs_20200901_artists.xml.gz"
+LABELS_FILE   = "./discogs_20200901_labels.xml.gz"
+MASTERS_FILE  = "./discogs_20200901_masters.xml.gz"
+RELEASES_FILE = "./discogs_20200901_releases.xml.gz"
 ```
 
 ### Process the data
 
-You can process the dump file with a block:
+Process the dump file with a block:
 
 ```ruby
-labels_dump = DiscogsData::Dump.new("https://discogs-data.s3-us-west-2.amazonaws.com/data/2020/discogs_20200901_labels.xml.gz") 
-labels_dump.each { |label| puts label.name }
+DiscogsData::Dump.new(ARTISTS_URL).each { |label| puts label[:name] }
 ```
 
 You can also process the dump file with a handler. The handler can be a lambda, a proc or an object with a `call` method:
@@ -59,7 +65,7 @@ end
 
 @handler = ArrayHandler.new
 
-DiscogsData::Dump.new("discogs_20200806_artists.xml.gz").each(@handler)
+DiscogsData::Dump.new(LABELS_URL).each(@handler)
 
 puts @handler.entities.count
 ```
@@ -69,7 +75,7 @@ puts @handler.entities.count
 You can limit the number of parsed entities by providing `limit` argument:
 
 ```ruby
-DiscogsData::Dump.new("discogs_20200806_artists.xml.gz").each(limit: 10) { |artist| puts artist.name }
+DiscogsData::Dump.new(MASTERS_URL).each(limit: 10) { |master| puts master[:name] }
 ```
 
 ### Process the entities in batches
@@ -77,7 +83,9 @@ DiscogsData::Dump.new("discogs_20200806_artists.xml.gz").each(limit: 10) { |arti
 You can process the entities in batches with `each_slice` method. You can limit the batch size to a certain amount with `batch_limit` parameter (default value is 1000).
 
 ```ruby
-DiscogsData::Dump.new("discogs_20200806_artists.xml.gz").each_slice(batch_limit: 10) { |batch| puts batch.map(&:name).join(', ') }
+DiscogsData::Dump.new(RELEASES_URL).each_slice(batch_limit: 10) do |batch| 
+  puts batch.map { |release| release[:name] }.join(', ')
+end
 ```
 
 ### Auto-detection of dump kind
@@ -85,7 +93,7 @@ DiscogsData::Dump.new("discogs_20200806_artists.xml.gz").each_slice(batch_limit:
 The parser automatically detects the type of entities inside the dump file:
 
 ```ruby
-DiscogsData::Dump.new("discogs_20200806_artists.xml.gz").each(limit: 1) { |artist| puts artist.class } # => DiscogsData::Model::Artist
+DiscogsData::Dump.new(ARTISTS_FILE).each(limit: 1) { |artist| puts artist.class } # => DiscogsData::Model::Artist
 ```
 
 The detection is based on the first XML element in the dump file (`<artists>`, `<labels>`, `<releases>`). If the parser does not recognise the entity type, it will raise `UnknownDumpFormat` exception. 
@@ -100,7 +108,7 @@ require "ruby-progressbar"
 @progress_bar = ProgressBar.create
 @count        = 0
 
-DiscogsData::Dump.new("https://discogs-data.s3-us-west-2.amazonaws.com/data/2020/discogs_20200901_labels.xml.gz").
+DiscogsData::Dump.new(LABELS_FILE).
   on(:file_size)     { |file_size|  @progress_bar.total = file_size }.
   on(:file_progress) { |chunk_size| @progress_bar.progress += chunk_size }.
   on(:dump_type)     { |dump_type|  @progress_bar.title = dump_type.to_s.capitalize }.
