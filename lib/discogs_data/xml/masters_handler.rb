@@ -54,12 +54,12 @@ module DiscogsData
           case name
           when :id          then @master[:artists].last[:artist_reference] = Model::ArtistReference.new(@text.to_i)
           when :name        then @master[:artists].last[:artist_reference][:name] = @text
-          when :anv         then @master[:artists].last[:anv] = @text
-          when :join        then @master[:artists].last[:join] = @text
-          when :role        then @master[:artists].last[:role] = @text
-          when :tracks      then @master[:artists].last[:tracks] = @text
-          when :description then @master[:videos].last[:description] = @text
-          when :title       then @master[:videos].last[:title] = @text
+          when :anv,
+               :join,
+               :role,
+               :tracks      then @master[:artists].last[name] = @text
+          when :description,
+               :title       then @master[:videos].last[name] = @text
           end
         end
 
