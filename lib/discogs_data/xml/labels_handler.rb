@@ -12,19 +12,19 @@ module DiscogsData
         case @path.size
         when 2
           case name
-          when :label then @label = Model::Label.new
+          when :label then @label = {}
           end
         when 3
           case name
-          when :parentLabel then @label[:parent_label] = Model::LabelReference.new
+          when :parentLabel then @label[:parent_label] = {}
           when :urls,
                :images,
                :sublabels   then @label[name] = []
           end
         when 4
           case name
-          when :image then @label[:images] << Model::Image.new
-          when :label then @label[:sublabels] << Model::LabelReference.new
+          when :image then @label[:images] << {}
+          when :label then @label[:sublabels] << {}
           end
         end
       end
@@ -57,7 +57,7 @@ module DiscogsData
       def attr(name, value)
         case @path.last
         when :parentLabel
-          @label[:parent_label][:id] = value.to_i
+          @label[:parent_label][:id] = value.to_i if name == :id
         when :label
           @label[:sublabels].last[:id] = value.to_i if @path.size == 4
         when :image
