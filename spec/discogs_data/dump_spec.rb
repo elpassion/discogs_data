@@ -5,32 +5,6 @@ RSpec.describe DiscogsData::Dump do
   let(:releases_file) { "spec/files/releases_sample.xml.gz" }
   let(:masters_file)  { "spec/files/masters_sample.xml.gz" }
 
-  let(:sample_label_with_all_fields) { {
-      id:           15,
-      name:         "20:20 Vision",
-      images:       [
-                        {type: "primary", uri: "", uri150: "", width: 600, height: 600},
-                        {type: "secondary", uri: "", uri150: "", width: 300, height: 300},
-                        {type: "secondary", uri: "", uri150: "", width: 150, height: 150},
-                        {type: "secondary", uri: "", uri150: "", width: 250, height: 44}
-                    ],
-      contact_info: "General enquiries: info@2020recordings.com\r\nLicensing enquiries: info@2020recordings.com\r\n\r\n\r\n",
-      profile:      "20/20 Vision \r\n\r\nAn eclectic selection of electronic music \r\n\r\nfounder - Ralph Lawson\r\nlocation - Leeds, UK\r\n\r\nOn some releases the label appears as 2020Vision or 20:20 Vision or 2020 Vision Recordings ",
-      parent_label: {id: 396938, name: "2020Vision Recordings Ltd."},
-      data_quality: "Needs Vote",
-      urls:         ["http://www.2020recordings.com", "http://2020recordings.bandcamp.com", "http://www.facebook.com/2020VisionRecordings", "http://www.instagram.com/2020vision_recordings", "http://www.myspace.com/2020soundsystem", "http://soundcloud.com/2020visionrecordings", "http://2020visiontour.tumblr.com", "http://twitter.com/2020Visionlabel", "http://www.youtube.com/user/2020recordings"],
-      sublabels:    [
-                        {id: 34355, name: ".dotbleep"},
-                        {id: 877, name: "20:20 D Vision"},
-                        {id: 42848, name: "20:20 Vintage Visions"},
-                        {id: 1554782, name: "20:20 Vision Limited Series"},
-                        {id: 416207, name: "2020 Midnight Visions"},
-                        {id: 30709, name: "Doublevision (2)"},
-                        {id: 44463, name: "Infant Records"},
-                        {id: 29641, name: "Nono Records (2)"}
-                    ]
-  } }
-
   it "passes parsed entities to the block" do
     releases = []
 
@@ -75,10 +49,12 @@ RSpec.describe DiscogsData::Dump do
     expect(array_handler.entities.first).to be_a(DiscogsData::Model::Artist)
   end
 
-  it "automatically detects Labels dump file" do
+  it "returns Label entities with the same structure and content as JSONs returned by Discogs API" do
+    LABEL_WITH_ALL_FIELDS = 15
+
     described_class.new(labels_file).each(array_handler)
 
-    expect(array_handler.entities.find { |label| label[:id] == 15 }).to eq(sample_label_with_all_fields)
+    expect(array_handler.find(LABEL_WITH_ALL_FIELDS)).to eq(fetch_label_without_rest_fields(LABEL_WITH_ALL_FIELDS))
   end
 
   it "automatically detects Releases dump file" do
@@ -104,6 +80,18 @@ RSpec.describe DiscogsData::Dump do
 
     def call(entity)
       @entities << entity
+    end
+
+    def find(id)
+      entities.find { |entity| entity[:id] == id }
+    end
+  end
+
+  LABEL_REST_FIELDS = [[:uri], [:releases_url], [:resource_url], [:images, :resource_url], [:sublabels, :resource_url], [:parent_label, :resource_url]]
+
+  def fetch_label_without_rest_fields(label_id)
+    VCR.use_cassette("label_#{label_id}") do
+      hash_except_paths(Helpers::DiscogsAPI.fetch_label(label_id), LABEL_REST_FIELDS)
     end
   end
 end
