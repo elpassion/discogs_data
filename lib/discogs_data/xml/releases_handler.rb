@@ -174,6 +174,13 @@ module DiscogsData
             when :status then @release.status = value
             end
           end
+        when 3
+          case node
+          when :master_id
+            case name
+            when :is_main_release then @release.master_main_release = (value == 'true')
+            end
+          end
         when 4
           case node
           when :video
